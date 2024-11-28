@@ -1,250 +1,192 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Currency Value History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
-        #currency-container {
-            width: 600px;
-            margin: 50px auto;
-            padding: 15px;
-            border: 1px solid #333;
-            background-color: #ffffff;
-        }
+
         h1 {
-            font-size: 24px;
-            color: #8c6910;
-            margin-bottom: 5px;
-            border-bottom: 2px solid #8c6910; /* Underline the entire width */
-            padding-bottom: 5px;
+            text-align: left;
         }
-        fieldset {
-            border: 1px solid #cccccc;
-            padding: 10px;
+
+        #currency-form {
+            display: grid;
+            grid-template-columns: auto auto;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
         }
-        legend {
-            font-weight: bold;
-        }
-        .form-group {
-            margin-bottom: 10px;
-        }
+
         label {
-            display: inline-block;
-            width: 150px;
-            margin-right: 10px;
+            text-align: right;
+            padding-right: 10px;
         }
-        select, input[type="text"] {
-            padding: 5px;
-            font-size: 14px;
+
+        select, input[type="date"] {
+            width: 100%;
         }
-        .error {
-            color: red;
-            font-size: 12px;
-            margin-left: 10px;
+
+        #button-container {
+            grid-column: 1 / 3;
+            text-align: left;
+            margin-top: 5px;
         }
-        #buttons {
-            margin-top: 15px;
-        }
+
         button {
-            padding: 8px 12px;
-            font-size: 14px;
-            margin-right: 10px;
+            margin: 0 10px;
+            padding: 5px;
+            font-size: 1em;
         }
+
+        #error-messages {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
         #chart-container {
-            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
-    <div id="currency-container">
-        <h1>Currency Value History</h1>
-        <fieldset>
-            <legend>Currency History</legend>
-
-            <div class="form-group">
-                <label for="baseCurrency">Base Currency:</label>
-                <select id="baseCurrency">
-                    <option value="">Select an Currency...</option>
-                    <option value="USD">US Dollar</option>
-                    <option value="EUR">Euro</option>
-                    <option value="GBP">Great Britain Pound</option>
-                    <option value="JPY">Japanese Yen</option>
-                    <option value="AUD">Australian Dollar</option>
-                </select>
-                <span id="baseCurrency-error" class="error"></span>
-            </div>
-
-            <div class="form-group">
-                <label for="convertCurrency">Convert to Currency:</label>
-                <select id="convertCurrency">
-                    <option value="">Select an Currency...</option>
-                    <option value="USD">US Dollar</option>
-                    <option value="EUR">Euro</option>
-                    <option value="GBP">Great Britain Pound</option>
-                    <option value="JPY">Japanese Yen</option>
-                    <option value="AUD">Australian Dollar</option>
-                </select>
-                <span id="convertCurrency-error" class="error"></span>
-            </div>
-
-            <div class="form-group">
-                <label for="fromDate">From Date:</label>
-                <input type="text" id="fromDate" placeholder="mm/dd/yyyy" />
-                <span id="fromDate-error" class="error"></span>
-            </div>
-
-            <div class="form-group">
-                <label for="toDate">To Date:</label>
-                <input type="text" id="toDate" placeholder="mm/dd/yyyy" />
-                <span id="toDate-error" class="error"></span>
-            </div>
-
-            <div id="buttons">
-                <button onclick="fetchCurrencyData()">Show Results</button>
-                <button onclick="clearInputs()">Clear</button>
-            </div>
-        </fieldset>
-        <div id="chart-container">
-            <canvas id="currencyChart"></canvas>
+    <h1>Currency Value History</h1>
+    <form id="currency-form">
+        <label for="base-currency">Base Currency:</label>
+        <select id="base-currency" required>
+            <option value="">Select an Option...</option>
+            <option value="USD">US Dollar</option>
+            <option value="EUR">Euro</option>
+            <option value="GBP">Great Britain Pound</option>
+            <option value="JPY">Japanese Yen</option>
+            <option value="AUD">Australian Dollar</option>
+        </select>
+        
+        <label for="convert-currency">Convert to Currency:</label>
+        <select id="convert-currency" required>
+            <option value="">Select an Option...</option>
+            <option value="USD">US Dollar</option>
+            <option value="EUR">Euro</option>
+            <option value="GBP">Great Britain Pound</option>
+            <option value="JPY">Japanese Yen</option>
+            <option value="AUD">Australian Dollar</option>
+        </select>
+        
+        <label for="from-date">From Date:</label>
+        <input type="date" id="from-date" required>
+        
+        <label for="to-date">To Date:</label>
+        <input type="date" id="to-date" required>
+        
+        <div id="button-container">
+            <button type="button" id="show-results">Show Results</button>
+            <button type="button" id="clear">Clear</button>
         </div>
+    </form>
+    <div id="error-messages" style="color: red;"></div>
+    <div id="chart-container">
+        <canvas id="chartjs-0" width="800" height="400"></canvas>
     </div>
 
     <script>
-        function formatDate(inputDate) {
-            const dateParts = inputDate.split('/');
-            return `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`;
+        const apiKey = '05uFFRG8Gx5J4cHMMZJVnwqVcWwXRlDx';
+
+        function clearForm() {
+            $('#base-currency').val('');
+            $('#convert-currency').val('');
+            $('#from-date').val('');
+            $('#to-date').val('');
+            $('#error-messages').text('');
+            const ctx = document.getElementById('chartjs-0').getContext('2d');
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         }
 
-        function fetchCurrencyData() {
-            // Clear previous error messages
-            clearErrorMessages();
-
-            const baseCurrency = document.getElementById("baseCurrency").value;
-            const convertCurrency = document.getElementById("convertCurrency").value;
-            const fromDate = document.getElementById("fromDate").value;
-            const toDate = document.getElementById("toDate").value;
-
+        function validateForm() {
             let valid = true;
+            let errorMessage = '';
 
-            // Validate inputs
-            if (!baseCurrency) {
-                document.getElementById("baseCurrency-error").textContent = "Base Currency is Required";
+            if (!$('#base-currency').val()) {
+                errorMessage += 'Base Currency is Required<br>';
                 valid = false;
             }
 
-            if (!convertCurrency) {
-                document.getElementById("convertCurrency-error").textContent = "Convert To Currency is Required";
+            if (!$('#convert-currency').val()) {
+                errorMessage += 'Convert To Currency is Required<br>';
                 valid = false;
             }
 
-            if (!fromDate) {
-                document.getElementById("fromDate-error").textContent = "From Date is Required";
+            if (!$('#from-date').val()) {
+                errorMessage += 'From Date is Required<br>';
                 valid = false;
             }
 
-            if (!toDate) {
-                document.getElementById("toDate-error").textContent = "To Date is Required";
+            if (!$('#to-date').val()) {
+                errorMessage += 'To Date is Required<br>';
                 valid = false;
             }
 
-            if (!valid) {
+            $('#error-messages').html(errorMessage);
+            return valid;
+        }
+
+        function showResults() {
+            if (!validateForm()) {
                 return;
             }
 
-            // Construct the URL for Polygon.io
-            const apiKey = '05uFFRG8Gx5J4cHMMZJVnwqVcWwXRlDx';  // Your API key here
-            const formattedFromDate = formatDate(fromDate);
-            const formattedToDate = formatDate(toDate);
-            const url = `https://api.polygon.io/v2/aggs/ticker/C:${baseCurrency}${convertCurrency}/range/1/day/${formattedFromDate}/${formattedToDate}?apiKey=${apiKey}`;
+            const baseCurrency = $('#base-currency').val();
+            const convertCurrency = $('#convert-currency').val();
+            const fromDate = $('#from-date').val();
+            const toDate = $('#to-date').val();
 
-            // Make AJAX request
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);  // Log response for debugging
-                    if (data && data.results) {
-                        const labels = data.results.map(result => new Date(result.t).toLocaleDateString());
-                        const values = data.results.map(result => result.c);
+            const url = `https://api.polygon.io/v2/aggs/ticker/C:${baseCurrency}${convertCurrency}/range/1/day/${fromDate}/${toDate}?adjusted=true&sort=asc&limit=120&apiKey=${apiKey}`;
 
-                        // Plot the data using Chart.js
-                        plotChart(labels, values, baseCurrency, convertCurrency);
-                    } else {
-                        alert('No data found for the selected range.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                    alert('Failed to fetch currency data. Please try again.');
-                });
-        }
+            $.get(url, function(data) {
+                if (data.results && data.results.length > 0) {
+                    const values = data.results.map(result => result.c);
+                    const dates = data.results.map(result => new Date(result.t).toLocaleDateString());
 
-        function plotChart(labels, values, baseCurrency, convertCurrency) {
-            const ctx = document.getElementById('currencyChart').getContext('2d');
-
-            // Destroy the existing chart if it exists
-            if (window.currencyChart) {
-                window.currencyChart.destroy();
-            }
-
-            // Create new chart
-            window.currencyChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: `One ${baseCurrency} to ${convertCurrency}`,
-                        data: values,
-                        borderColor: '#008080',
-                        fill: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            title: {
-                                display: true,
-                                text: convertCurrency
-                            }
+                    const ctx = document.getElementById("chartjs-0");
+                    new Chart(ctx, {
+                        "type": "line",
+                        "data": {
+                            "labels": dates,
+                            "datasets": [{
+                                "label": `One ${baseCurrency} to ${convertCurrency}`,
+                                "data": values,
+                                "fill": false
+                            }]
                         },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
+                        "options": {
+                            responsive: false,
+                            maintainAspectRatio: true
                         }
-                    }
+                    });
+                } else {
+                    $('#error-messages').text('No data available for the selected currencies and dates.');
                 }
+            }).fail(function() {
+                $('#error-messages').text('Error retrieving data. Please try again later.');
             });
         }
 
-        function clearInputs() {
-            // Clear input values
-            document.getElementById("baseCurrency").value = "";
-            document.getElementById("convertCurrency").value = "";
-            document.getElementById("fromDate").value = "";
-            document.getElementById("toDate").value = "";
-
-            // Clear error messages and chart
-            clearErrorMessages();
-
-            // Clear chart
-            if (window.currencyChart) {
-                window.currencyChart.destroy();
-            }
-        }
-
-        function clearErrorMessages() {
-            document.getElementById("baseCurrency-error").textContent = "";
-            document.getElementById("convertCurrency-error").textContent = "";
-            document.getElementById("fromDate-error").textContent = "";
-            document.getElementById("toDate-error").textContent = "";
-        }
+        $('#show-results').click(showResults);
+        $('#clear').click(clearForm);
     </script>
 </body>
 </html>
