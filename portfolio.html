@@ -9,7 +9,7 @@
     <meta name="author" content="Michael Peckham">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <!-- See https://www.w3schools.com/howto/howto_js_responsive_navbar_dropdown.asp -->
+    <script src="Web-1/assets/scripts/calculator.js" defer></script>
 <style>
 body {margin:0; font-family: Arial}
 
@@ -276,6 +276,30 @@ p.shift {
     </div>
 
     <div id="Programming" class="tabcontent section">
+            <h2>Programming Example 1</h2>
+            <p>This is an example of a JavaScript-based calculator I developed:</p>
+            <div id="calculator-container">
+                <div id="calculator">
+                    <input type="text" id="result" disabled>
+                    <button class="btn" onclick="appendNumber('7')">7</button>
+                    <button class="btn" onclick="appendNumber('8')">8</button>
+                    <button class="btn" onclick="appendNumber('9')">9</button>
+                    <button class="btn operator" onclick="setOperator('/')">÷</button>
+                    <button class="btn" onclick="appendNumber('4')">4</button>
+                    <button class="btn" onclick="appendNumber('5')">5</button>
+                    <button class="btn" onclick="appendNumber('6')">6</button>
+                    <button class="btn operator" onclick="setOperator('*')">×</button>
+                    <button class="btn" onclick="appendNumber('1')">1</button>
+                    <button class="btn" onclick="appendNumber('2')">2</button>
+                    <button class="btn" onclick="appendNumber('3')">3</button>
+                    <button class="btn operator" onclick="setOperator('-')">−</button>
+                    <button class="btn zero" onclick="appendNumber('0')">0</button>
+                    <button class="btn equal" onclick="calculate()">=</button>
+                    <button class="btn operator" onclick="setOperator('+')">+</button>
+                    <button class="btn clear" onclick="clearResult()">C</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="SoftSkills" class="tabcontent section">
