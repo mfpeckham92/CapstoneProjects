@@ -1,356 +1,165 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
    <meta charset="UTF-8">
-
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
    <title>Currency Value History</title>
-
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
    <style>
-
        body {
-
            font-family: Arial, sans-serif;
-
            max-width: 800px;
-
            margin: 0 auto;
-
            padding: 20px;
-
        }
-
-
        h1 {
-
            text-align: left;
-
        }
-
-
        #currency-form {
-
            display: grid;
-
            grid-template-columns: auto auto;
-
            gap: 10px;
-
            margin-bottom: 20px;
-
            align-items: center;
-
        }
-
-
        label {
-
            text-align: right;
-
            padding-right: 10px;
-
        }
-
-
        select, input[type="date"] {
-
            width: 100%;
-
        }
-
-
        #button-container {
-
            grid-column: 1 / 3;
-
            text-align: left;
-
            margin-top: 5px;
-
        }
-
-
        button {
-
            margin: 0 10px;
-
            padding: 5px;
-
            font-size: 1em;
-
        }
-
-
        #error-messages {
-
            text-align: center;
-
            margin-bottom: 20px;
-
        }
-
-
        #chart-container {
-
            border-top: 1px solid #ccc;
-
            padding-top: 20px;
-
        }
-
-
        canvas {
-
            display: block;
-
            margin: 0 auto;
-
        }
-
    </style>
-
 </head>
-
 <body>
-
    <h1>Currency Value History</h1>
-
    <form id="currency-form">
-
        <label for="base-currency">Base Currency:</label>
-
        <select id="base-currency" required>
-
            <option value="">Select an Option...</option>
-
            <option value="USD">US Dollar</option>
-
            <option value="EUR">Euro</option>
-
            <option value="GBP">Great Britain Pound</option>
-
            <option value="JPY">Japanese Yen</option>
-
            <option value="AUD">Australian Dollar</option>
-
        </select>
-
-
        <label for="convert-currency">Convert to Currency:</label>
-
        <select id="convert-currency" required>
-
            <option value="">Select an Option...</option>
-
            <option value="USD">US Dollar</option>
-
            <option value="EUR">Euro</option>
-
            <option value="GBP">Great Britain Pound</option>
-
            <option value="JPY">Japanese Yen</option>
-
            <option value="AUD">Australian Dollar</option>
-
        </select>
-
-
        <label for="from-date">From Date:</label>
-
        <input type="date" id="from-date" required>
-
-
        <label for="to-date">To Date:</label>
-
        <input type="date" id="to-date" required>
-
-
        <div id="button-container">
-
            <button type="button" id="show-results">Show Results</button>
-
            <button type="button" id="clear">Clear</button>
-
        </div>
-
    </form>
-
    <div id="error-messages" style="color: red;"></div>
-
    <div id="chart-container">
-
        <canvas id="chartjs-0" width="800" height="400"></canvas>
-
    </div>
-
-
    <script>
-
        const apiKey = '05uFFRG8Gx5J4cHMMZJVnwqVcWwXRlDx';
-
-
        function clearForm() {
-
            $('#base-currency').val('');
-
            $('#convert-currency').val('');
-
            $('#from-date').val('');
-
            $('#to-date').val('');
-
            $('#error-messages').text('');
-
            const ctx = document.getElementById('chartjs-0').getContext('2d');
-
            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
        }
-
-
        function validateForm() {
-
            let valid = true;
-
            let errorMessage = '';
-
-
            if (!$('#base-currency').val()) {
-
                errorMessage += 'Base Currency is Required<br>';
-
                valid = false;
-
            }
-
-
            if (!$('#convert-currency').val()) {
-
                errorMessage += 'Convert To Currency is Required<br>';
-
                valid = false;
-
            }
-
-
            if (!$('#from-date').val()) {
-
                errorMessage += 'From Date is Required<br>';
-
                valid = false;
-
            }
-
-
            if (!$('#to-date').val()) {
-
                errorMessage += 'To Date is Required<br>';
-
                valid = false;
-
            }
-
-
            $('#error-messages').html(errorMessage);
-
            return valid;
-
        }
-
-
        function showResults() {
-
            if (!validateForm()) {
-
                return;
-
            }
-
-
            const baseCurrency = $('#base-currency').val();
-
            const convertCurrency = $('#convert-currency').val();
-
            const fromDate = $('#from-date').val();
-
            const toDate = $('#to-date').val();
-
-
            const url = `https://api.polygon.io/v2/aggs/ticker/C:${baseCurrency}${convertCurrency}/range/1/day/${fromDate}/${toDate}?adjusted=true&sort=asc&limit=120&apiKey=${apiKey}`;
-
-
            $.get(url, function(data) {
-
                if (data.results && data.results.length > 0) {
-
                    const values = data.results.map(result => result.c);
-
                    const dates = data.results.map(result => new Date(result.t).toLocaleDateString());
-
-
                    const ctx = document.getElementById("chartjs-0");
-
                    new Chart(ctx, {
-
                        "type": "line",
-
                        "data": {
-
                            "labels": dates,
-
                            "datasets": [{
-
                                "label": `One ${baseCurrency} to ${convertCurrency}`,
-
                                "data": values,
-
                                "fill": false
-
                            }]
-
                        },
-
                        "options": {
-
                            responsive: false,
-
                            maintainAspectRatio: true
-
                        }
-
                    });
-
                } else {
-
                    $('#error-messages').text('No data available for the selected currencies and dates.');
-
                }
-
            }).fail(function() {
-
                $('#error-messages').text('Error retrieving data. Please try again later.');
-
            });
-
        }
-
-
        $('#show-results').click(showResults);
-
        $('#clear').click(clearForm);
-
    </script>
-
 </body>
-
 </html>
