@@ -150,6 +150,45 @@ p.shift {
 .section {
     margin-bottom: 30px;
 }
+    /* Calculator-specific styles */
+        #calculator-container {
+            margin: 20px auto;
+            width: fit-content;
+        }
+
+        #calculator {
+            width: 220px;
+            display: grid;
+            grid-template-columns: repeat(4, 50px);
+            grid-gap: 5px;
+        }
+
+        #result {
+            grid-column: span 4;
+            width: 100%;
+            height: 50px;
+            font-size: 24px;
+            text-align: right;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        #calculator .btn {
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        #calculator .btn.zero {
+            grid-column: span 2;
+            width: 100%;
+        }
+
+        #calculator .btn.clear {
+            grid-column: span 4;
+            width: 100%;
+        }
 </style>
 </head>
 <body>
@@ -341,6 +380,69 @@ function openTab(evt, tabName) {
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
 }
+
+// Calculator functionality
+        let currentInput = '';
+        let operator = null;
+        let previousInput = '';
+
+        function appendNumber(number) {
+            currentInput += number;
+            updateResult(currentInput);
+        }
+
+        function setOperator(op) {
+            if (currentInput === '') return;
+            if (previousInput !== '') {
+                calculate();
+            }
+            operator = op;
+            previousInput = currentInput;
+            currentInput = '';
+        }
+
+        function calculate() {
+            if (currentInput === '' || previousInput === '' || operator === null) return;
+            let result;
+            let num1 = parseFloat(previousInput);
+            let num2 = parseFloat(currentInput);
+            switch (operator) {
+                case '+':
+                    result = num1 + num2;
+                    break;
+                case '-':
+                    result = num1 - num2;
+                    break;
+                case '*':
+                    result = num1 * num2;
+                    break;
+                case '/':
+                    if (num2 === 0) {
+                        alert("Cannot divide by zero");
+                        clearResult();
+                        return;
+                    }
+                    result = num1 / num2;
+                    break;
+                default:
+                    return;
+            }
+            updateResult(result);
+            currentInput = result.toString();
+            operator = null;
+            previousInput = '';
+        }
+
+        function clearResult() {
+            currentInput = '';
+            operator = null;
+            previousInput = '';
+            updateResult('');
+        }
+
+        function updateResult(value) {
+            document.getElementById('result').value = value;
+        }
 </script>
 </body>
 </html>
